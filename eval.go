@@ -486,7 +486,7 @@ func tokenize(expression string) (*Token, error) {
 	for _, t := range tokens {
 		if prevToken != nil && prevToken.Type == TokenTypeInferredString && t.Type == TokenTypeGroup {
 			// a function call will have one or more arguments, thus this token list needs to be converted into a series of groups, one per arg
-			var newTok *Token = &Token{
+			var newTok = &Token{
 				Type: TokenTypeGroup,
 			}
 			for _, subTok := range t.Tokens {
@@ -515,11 +515,7 @@ func tokenize(expression string) (*Token, error) {
 		OperatorExponent, OperatorDivide, OperatorMultiply,
 	} {
 		i := 0
-		for {
-			if i == len(rectifiedTokens) {
-				break
-			}
-
+		for i < len(rectifiedTokens) {
 			j := i + 1
 			if j < len(rectifiedTokens)-1 {
 				if rectifiedTokens[j].Type == TokenTypeOperator && rectifiedTokens[j].Text == oper {
@@ -568,7 +564,7 @@ func IsTruthy(value any) bool {
 	case map[string]any:
 		return len(t) > 0
 	case bool:
-		return t == true
+		return t
 	default:
 		return false
 	}

@@ -97,7 +97,7 @@ func TestGreaterThanOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, result.(bool))
 
-	result, err = GreaterThanOp(1., "a")
+	_, err = GreaterThanOp(1., "a")
 	assert.Error(t, err)
 }
 
@@ -126,7 +126,7 @@ func TestGreaterThanEqualsOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, result.(bool))
 
-	result, err = GreaterThanEqualsOp(1., "a")
+	_, err = GreaterThanEqualsOp(1., "a")
 	assert.Error(t, err)
 }
 

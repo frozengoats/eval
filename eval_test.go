@@ -153,7 +153,8 @@ func TestEvaluateNestedQuotedExpression(t *testing.T) {
 
 func TestEvaluateExpressionWithVariables(t *testing.T) {
 	values := kvstore.NewStore()
-	values.Set([]any{100, 101, 102}, "abc", "def")
+	err := values.Set([]any{100, 101, 102}, "abc", "def")
+	assert.NoError(t, err)
 	exp := ".abc.def[1]"
 
 	vLookup := func(key string) (any, error) {
@@ -168,7 +169,8 @@ func TestEvaluateExpressionWithVariables(t *testing.T) {
 
 func TestEvaluateExpressionWithNestedVariables(t *testing.T) {
 	values := kvstore.NewStore()
-	values.Set([]any{100, 101, 102}, "abc", "def")
+	err := values.Set([]any{100, 101, 102}, "abc", "def")
+	assert.NoError(t, err)
 	exp := "len(.abc.def) + 10"
 
 	vLookup := func(key string) (any, error) {
