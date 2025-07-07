@@ -35,7 +35,7 @@ func TestEqualsOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, result.(bool))
 
-	result, err = EqualsOp(1., "a")
+	_, err = EqualsOp(1., "a")
 	assert.Error(t, err)
 }
 
@@ -68,7 +68,7 @@ func TestUnEqualsOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, result.(bool))
 
-	result, err = UnequalsOp(1., "a")
+	_, err = UnequalsOp(1., "a")
 	assert.Error(t, err)
 }
 
@@ -155,7 +155,7 @@ func TestLessThanOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, result.(bool))
 
-	result, err = LessThanOp(1., "a")
+	_, err = LessThanOp(1., "a")
 	assert.Error(t, err)
 }
 
