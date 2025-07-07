@@ -295,10 +295,10 @@ func TestPlusOperator(t *testing.T) {
 }
 
 func TestMinusOperator(t *testing.T) {
-	result, err := MinusOp("a", "a")
+	_, err := MinusOp("a", "a")
 	assert.Error(t, err)
 
-	result, err = MinusOp(2.0, 2.5)
+	result, err := MinusOp(2.0, 2.5)
 	assert.NoError(t, err)
 	assert.Equal(t, -0.5, result)
 }
