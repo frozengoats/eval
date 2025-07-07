@@ -184,7 +184,7 @@ func TestLessThanEqualsOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, result.(bool))
 
-	result, err = LessThanEqualsOp(1., "a")
+	_, err = LessThanEqualsOp(1., "a")
 	assert.Error(t, err)
 }
 
@@ -320,6 +320,6 @@ func TestDivideOperator(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 3.0, result)
 
-	result, err = DivideOp(9.0, 0.0)
+	_, err = DivideOp(9.0, 0.0)
 	assert.Error(t, err)
 }
