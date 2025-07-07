@@ -18,7 +18,7 @@ eval is an expression evaluation framework which can deal with the following cha
 | `>=` | greater than or equal to (same rules as `>`) |
 | `<` | less than (same rules as `>`) |
 | `<=` | less than or equal to (same rules as `>`) |
-| `&&` | logical and, if both values evaluate to non-empty, last occurrence will be selected, otherwise, first empty occurrence will be selected.  applies to numbers, strings, and booleans |
+| `&&` | logical and, if both values evaluate to non-empty, last occurrence will be selected, otherwise, first empty occurrence will be selected.  applies to numbers, strings, booleans, arrays and mappings |
 | `\|\|` | logical or, same rules apply as `&&` |
 | `+` | addition/concatenation. performs addition on numbers and will concatenate both strings and arrays |
 | `-` | subtraction, applies to numbers only |

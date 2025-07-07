@@ -157,6 +157,10 @@ func AndOp(a any, b any) (any, error) {
 		aIsTrue = aT != 0
 	case bool:
 		aIsTrue = a == true
+	case []any:
+		aIsTrue = len(aT) > 0
+	case map[string]any:
+		aIsTrue = len(aT) > 0
 	default:
 		aIsTrue = false
 	}
@@ -168,6 +172,10 @@ func AndOp(a any, b any) (any, error) {
 		bIsTrue = bT != 0
 	case bool:
 		bIsTrue = b == true
+	case []any:
+		aIsTrue = len(bT) > 0
+	case map[string]any:
+		aIsTrue = len(bT) > 0
 	default:
 		bIsTrue = false
 	}
@@ -193,6 +201,10 @@ func OrOp(a any, b any) (any, error) {
 		aIsTrue = aT != 0
 	case bool:
 		aIsTrue = a == true
+	case []any:
+		aIsTrue = len(aT) > 0
+	case map[string]any:
+		aIsTrue = len(aT) > 0
 	default:
 		aIsTrue = false
 	}
@@ -204,6 +216,10 @@ func OrOp(a any, b any) (any, error) {
 		bIsTrue = bT != 0
 	case bool:
 		bIsTrue = b == true
+	case []any:
+		aIsTrue = len(bT) > 0
+	case map[string]any:
+		aIsTrue = len(bT) > 0
 	default:
 		bIsTrue = false
 	}
