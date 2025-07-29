@@ -203,3 +203,27 @@ func TestIsTruthy(t *testing.T) {
 	assert.True(t, IsTruthy(map[string]any{"1": 1}))
 	assert.False(t, IsTruthy(map[string]any{}))
 }
+
+func TestTemplate(t *testing.T) {
+	rendered, err := Template("{{ 50 }} hello {{ 100 + 2 }} something {{ hamster }}", nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "50 hello 102 something hamster", rendered)
+}
+
+func TestTemplateStartEndEdgeCase(t *testing.T) {
+	rendered, err := Template("hello {{ 100 * 2 }} something", nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "hello 200 something", rendered)
+}
+
+func TestTemplateSpace(t *testing.T) {
+	rendered, err := Template(" {{ 50 }} hello {{ 100 + 2 }} something {{ hamster }} ", nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, " 50 hello 102 something hamster ", rendered)
+}
+
+func TestEmptyTemplate(t *testing.T) {
+	rendered, err := Template("{{  }}", nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "", rendered)
+}
