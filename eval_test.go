@@ -151,6 +151,12 @@ func TestEvaluateNestedQuotedExpression(t *testing.T) {
 	assert.Equal(t, "abc def ghi jkl", result)
 }
 
+func TestNestedFuncs(t *testing.T) {
+	exp := "len(strip(\" abc def \")) == 2"
+	_, err := Evaluate(exp, nil, fLookup)
+	assert.NoError(t, err)
+}
+
 func TestEvaluateExpressionWithVariables(t *testing.T) {
 	values := kvstore.NewStore()
 	err := values.Set([]any{100, 101, 102}, "abc", "def")
@@ -226,4 +232,26 @@ func TestEmptyTemplate(t *testing.T) {
 	rendered, err := Template("{{  }}", nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "", rendered)
+}
+
+func TestNoTemplate(t *testing.T) {
+	rendered, err := Template("some perfectly normal text", nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "some perfectly normal text", rendered)
+}
+
+func TestIterableVariableEvaluation(t *testing.T) {
+	values := kvstore.NewStore()
+	err := values.Set([]any{100, 101, 102}, "abc", "def")
+	assert.NoError(t, err)
+
+	exp := ".abc.def"
+
+	vLookup := func(key string) (any, error) {
+		k := strings.TrimPrefix(key, ".")
+		return values.Get(values.ParseNamespaceString(k)...), nil
+	}
+
+	_, err = Evaluate(exp, vLookup, nil)
+	assert.NoError(t, err)
 }
