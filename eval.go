@@ -10,7 +10,7 @@ import (
 type VariableLookup func(key string) (any, error)
 type FunctionCall func(name string, args ...any) (any, error)
 
-var variableFinder = regexp.MustCompile(`^\.[a-zA-Z_$]`)
+var variableFinder = regexp.MustCompile(`^\.[a-zA-Z_]`)
 var templateFinder = regexp.MustCompile(`{{\s+.*?\s+}}`)
 
 const (
