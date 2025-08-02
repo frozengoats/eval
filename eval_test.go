@@ -32,7 +32,7 @@ var fLookup = func(name string, args ...any) (any, error) {
 		case string:
 			return strings.Trim(t, "\n "), nil
 		default:
-			return nil, fmt.Errorf("unsupported type")
+			return nil, fmt.Errorf("unsupported type %T", t)
 		}
 	default:
 		return nil, fmt.Errorf("unknown function %s", name)
@@ -73,6 +73,9 @@ func TestTokenizerSimple(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, TokenTypeGroup, tokenGroup.Type)
 	tokens := tokenGroup.Tokens
+	assert.Len(t, tokens, 1)
+
+	tokens = tokens[0].Tokens
 	assert.Len(t, tokens, 3)
 	assert.Equal(t, tokens[0].Type, TokenTypeVariable)
 	assert.Equal(t, tokens[1].Type, TokenTypeOperator)
@@ -85,6 +88,9 @@ func TestTokenizerNestedInQuotes(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, TokenTypeGroup, tokenGroup.Type)
 	tokens := tokenGroup.Tokens
+	assert.Len(t, tokens, 1)
+
+	tokens = tokens[0].Tokens
 	assert.Len(t, tokens, 3)
 	assert.Equal(t, tokens[0].Type, TokenTypeVariable)
 	assert.Equal(t, tokens[1].Type, TokenTypeOperator)
@@ -98,6 +104,9 @@ func TestTokenizerNestedInSingleQuotes(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, TokenTypeGroup, tokenGroup.Type)
 	tokens := tokenGroup.Tokens
+	assert.Len(t, tokens, 1)
+
+	tokens = tokens[0].Tokens
 	assert.Len(t, tokens, 3)
 	assert.Equal(t, TokenTypeVariable, tokens[0].Type)
 	assert.Equal(t, TokenTypeOperator, tokens[1].Type)
@@ -111,6 +120,9 @@ func TestTokenizerParenthGroup(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, TokenTypeGroup, tokenGroup.Type)
 	tokens := tokenGroup.Tokens
+	assert.Len(t, tokens, 1)
+
+	tokens = tokens[0].Tokens
 	assert.Len(t, tokens, 3)
 	assert.Equal(t, tokens[0].Type, TokenTypeVariable)
 	assert.Equal(t, tokens[1].Type, TokenTypeOperator)
@@ -123,7 +135,8 @@ func TestTokenizerParenthGroup(t *testing.T) {
 	assert.Equal(t, TokenTypeGroup, subTok[2].Type)
 
 	subTok = subTok[2].Tokens
-	assert.Len(t, subTok, 3)
+	assert.Len(t, subTok, 1)
+	subTok = subTok[0].Tokens
 
 	assert.Equal(t, TokenTypeVariable, subTok[0].Type)
 	assert.Equal(t, TokenTypeOperator, subTok[1].Type)
@@ -253,5 +266,10 @@ func TestIterableVariableEvaluation(t *testing.T) {
 	}
 
 	_, err = Evaluate(exp, vLookup, nil)
+	assert.NoError(t, err)
+}
+
+func TestBooleanOrderOfOps(t *testing.T) {
+	_, err := Evaluate("strip(' abc ') == abc || strip('two') == three || two == two", nil, fLookup)
 	assert.NoError(t, err)
 }

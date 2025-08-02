@@ -499,7 +499,7 @@ func organizeTokens(tokens []*Token) []*Token {
 
 	var orderedTokens []*Token
 	for _, oper := range []string{
-		OperatorExponent, OperatorDivide, OperatorMultiply,
+		OperatorExponent, OperatorDivide, OperatorMultiply, OperatorPlus, OperatorMinus, OperatorEquals, OperatorUnequals, OperatorGreater, OperatorGreaterEquals, OperatorLess, OperatorLessEquals,
 	} {
 		i := 0
 		for i < len(rectifiedTokens) {
