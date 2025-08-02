@@ -3,7 +3,7 @@ module github.com/frozengoats/eval
 go 1.24.0
 
 require (
-	github.com/frozengoats/kvstore v0.1.1
+	github.com/frozengoats/kvstore v0.1.9
 	github.com/stretchr/testify v1.10.0
 )
 

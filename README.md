@@ -114,8 +114,21 @@ fLookup := func(name string, args ...any) (any, error) {
 }
 ```
 
+## subscripting of intermediate values
+not only variables support subscripting.  any intermediate value generated in the expression can also be subscripted.  the supported subscripting format is as follows:
+```
+// array indexes
+x := eval.Evaluate("myfunc('abc')[-1]")
+
+// mapping access
+x := eval.Evaluate("myfunc('abc').def.ghi")
+
+// mixed access
+x := eval.Evaluate("myfunc('abc').def[0].ghi[3]")
+```
+
 ## template support
-`eval` support basic template rendering, using `{{ <expression> }}` as the marker for a templated portion of a string.  the template syntax is stric in its requirement for two curly braces (opening on the opening side, and closing on the completion side), plus the presence of at least one whitespace character on either side of the template to be evaluated.  the following would be invalid syntax `{{<expression>}}` or `{{<expression> }}`, however the following would be valid (the excess whitespace would simply be ignored).
+`eval` support basic template rendering, using `{{ <expression> }}` as the marker for a templated portion of a string.  whitespace within the template markers is ignored unless explicitly included in a quoted string.  whitespace between `{{}}` is not required.
 ```
 the thing is {{     .variable[0] + 2     }} meters long
 ```
