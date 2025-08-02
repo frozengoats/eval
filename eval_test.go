@@ -24,6 +24,24 @@ var fLookup = func(name string, args ...any) (any, error) {
 		default:
 			return nil, fmt.Errorf("unsupported type")
 		}
+	case "lines":
+		if len(args) != 1 {
+			return nil, fmt.Errorf("incorrect number of arguments")
+		}
+
+		arg := args[0]
+		switch t := arg.(type) {
+		case string:
+			var res []any
+			t = strings.TrimSuffix(t, "\n")
+			parts := strings.Split(t, "\n")
+			for _, p := range parts {
+				res = append(res, p)
+			}
+			return res, nil
+		default:
+			return nil, fmt.Errorf("unsupported type %T", t)
+		}
 	case "strip":
 		if len(args) != 1 {
 			return nil, fmt.Errorf("incorrect number of arguments")
@@ -178,7 +196,7 @@ func TestEvaluateExpressionWithVariables(t *testing.T) {
 
 	vLookup := func(key string) (any, error) {
 		k := strings.TrimPrefix(key, ".")
-		return values.Get(values.ParseNamespaceString(k)...), nil
+		return values.Get(kvstore.ParseNamespaceString(k)...), nil
 	}
 
 	result, err := Evaluate(exp, vLookup, nil)
@@ -194,7 +212,7 @@ func TestEvaluateExpressionWithNestedVariables(t *testing.T) {
 
 	vLookup := func(key string) (any, error) {
 		k := strings.TrimPrefix(key, ".")
-		return values.Get(values.ParseNamespaceString(k)...), nil
+		return values.Get(kvstore.ParseNamespaceString(k)...), nil
 	}
 
 	result, err := Evaluate(exp, vLookup, fLookup)
@@ -262,7 +280,7 @@ func TestIterableVariableEvaluation(t *testing.T) {
 
 	vLookup := func(key string) (any, error) {
 		k := strings.TrimPrefix(key, ".")
-		return values.Get(values.ParseNamespaceString(k)...), nil
+		return values.Get(kvstore.ParseNamespaceString(k)...), nil
 	}
 
 	_, err = Evaluate(exp, vLookup, nil)
@@ -272,4 +290,38 @@ func TestIterableVariableEvaluation(t *testing.T) {
 func TestBooleanOrderOfOps(t *testing.T) {
 	_, err := Evaluate("strip(' abc ') == abc || strip('two') == three || two == two", nil, fLookup)
 	assert.NoError(t, err)
+}
+
+func TestBooleanOrderOfOpsTwo(t *testing.T) {
+	v, err := Evaluate("len(strip(' abc ')) == 3 && len(strip('to')) != 3 && len(strip('two')) == 3", nil, fLookup)
+	assert.NoError(t, err)
+	vBool, ok := v.(bool)
+	assert.True(t, ok)
+	assert.True(t, vBool)
+}
+
+func TestBooleanOrderOfOpsThree(t *testing.T) {
+	kvs := kvstore.NewStore()
+	err := kvs.Set("this is a text bundle\nand why not", "stdout")
+	assert.NoError(t, err)
+
+	vLookup := func(key string) (any, error) {
+		key = strings.TrimPrefix(key, ".")
+		v := kvs.Get(kvstore.ParseNamespaceString(key)...)
+		return v, nil
+	}
+
+	_, err = Evaluate(`len(lines(.stdout)) != 2 || lines(.stdout)[0] != "this is a text bundle"`, vLookup, fLookup)
+	assert.NoError(t, err)
+}
+
+func TestSubscriptImmediateUnsubscriptable(t *testing.T) {
+	_, err := subscriptImmediate("hello", "[2][4][6].abc")
+	assert.Error(t, err)
+}
+
+func TestSubscriptImmediateSubscriptable(t *testing.T) {
+	v, err := subscriptImmediate([]any{"abc", map[string]any{"def": 3}}, "[1].def")
+	assert.NoError(t, err)
+	assert.Equal(t, 3, v)
 }

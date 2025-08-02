@@ -2,26 +2,8 @@ package kvstore
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
-	"strings"
 )
-
-var indexIdentifier = regexp.MustCompile(`([^[]+)\[(-?\d+)\]`)
-
-func parseArrayKey(test string) (string, int, bool) {
-	match := indexIdentifier.FindAllStringSubmatch(test, -1)
-	if len(match) == 0 {
-		return "", 0, false
-	}
-
-	index, err := strconv.ParseInt(match[0][2], 10, 64)
-	if err != nil {
-		return "", 0, false
-	}
-
-	return match[0][1], int(index), true
-}
 
 func reCastStringArray(value []string) []any {
 	newArr := make([]any, len(value))
@@ -48,10 +30,14 @@ func reCastFloatArray(value []float64) []any {
 }
 
 func verifySlice(data []any) error {
-	for _, v := range data {
+	for i, v := range data {
 		switch t := v.(type) {
 		case bool:
 		case int:
+		case int64:
+			data[i] = int(t)
+		case uint64:
+			data[i] = int(t)
 		case float64:
 		case string:
 		case nil:
@@ -77,6 +63,10 @@ func verifyMapping(data map[string]any) error {
 	for k, v := range data {
 		switch t := v.(type) {
 		case bool:
+		case int64:
+			data[k] = int(t)
+		case uint64:
+			data[k] = int(t)
 		case int:
 		case float64:
 		case string:
@@ -178,6 +168,13 @@ func FromMapping(mapping map[string]any) (*Store, error) {
 		return nil, err
 	}
 
+	return FromUnsafeMapping(mapping)
+}
+
+// FromUnsafeMapping returns a new store object from a standard mapping without performing any verification.
+// This is done purely for performance reasons, where the full nature of an input mapping is understood
+// and conforms to what kvstore is expecting.
+func FromUnsafeMapping(mapping map[string]any) (*Store, error) {
 	return &Store{
 		data: mapping,
 	}, nil
@@ -187,9 +184,13 @@ func FromMapping(mapping map[string]any) (*Store, error) {
 // namespace.
 func (s *Store) get(namespace ...any) (any, bool) {
 	var root any
-
 	root = s.data
 	total_ns_keys := len(namespace)
+
+	if total_ns_keys == 0 {
+		return root, true
+	}
+
 	for i, ns := range namespace {
 		switch nsTyped := ns.(type) {
 		case string:
@@ -202,21 +203,45 @@ func (s *Store) get(namespace ...any) (any, bool) {
 				return nil, false
 			}
 		case int:
-			rootSlice, ok := root.([]any)
-			if !ok {
-				return nil, false
-			}
-			if nsTyped >= len(rootSlice) {
-				return nil, false
+			switch t := root.(type) {
+			case []any:
+				if nsTyped >= len(t) {
+					return nil, false
+				}
+
+				if nsTyped < 0-len(t) {
+					return nil, false
+				}
+				if nsTyped < 0 {
+					nsTyped = len(t) + nsTyped
+				}
+				root = t[nsTyped]
+			case string:
+				if nsTyped >= len(t) {
+					return nil, false
+				}
+
+				if nsTyped < 0-len(t) {
+					return nil, false
+				}
+				if nsTyped < 0 {
+					nsTyped = len(t) + nsTyped
+				}
+				return string([]byte{t[nsTyped]}), true
+			case []byte:
+				if nsTyped >= len(t) {
+					return nil, false
+				}
+
+				if nsTyped < 0-len(t) {
+					return nil, false
+				}
+				if nsTyped < 0 {
+					nsTyped = len(t) + nsTyped
+				}
+				return t[nsTyped], true
 			}
 
-			if nsTyped < 0-len(rootSlice) {
-				return nil, false
-			}
-			if nsTyped < 0 {
-				nsTyped = len(rootSlice) + nsTyped
-			}
-			root = rootSlice[nsTyped]
 		default:
 			return nil, false
 		}
@@ -456,6 +481,23 @@ func (s *Store) GetArray(namespace ...any) []any {
 	return value
 }
 
+// GetByteArray retrieves an a byte array from the store.  A byte array is considered different than a normal array of "any"
+// type, in that it is treated as a single unit of data, rather than a generic array.
+func (s *Store) GetByteArray(namespace ...any) []byte {
+	var value []byte
+	v, ok := s.get(namespace...)
+	if !ok {
+		return value
+	}
+
+	t, ok := v.([]byte)
+	if ok {
+		return t
+	}
+
+	return value
+}
+
 // GetMappingArray retrieves a mapping array value from the store at namespace or the zero value
 // if it cannot be located.  The zero value for an array is nil
 func (s *Store) GetMappingArray(namespace ...any) []map[string]any {
@@ -584,25 +626,70 @@ func (s *Store) GetStoreArray(namespace ...any) []*Store {
 // Overlay returns a new store object which overlays the provided store onto this store
 // This method isn't designed for high efficiency, but rather high code maintainability - for
 // this reason the entire base is copied before determining which keys are actually needed in the final overlay
-func (s *Store) Overylay(ovl *Store) (*Store, error) {
+func (s *Store) Overlay(ovl *Store) *Store {
 	newMap := deepCopyMap(s.data)
 	overlayMap := deepCopyMap(ovl.data)
 	copyOver(newMap, overlayMap)
-	return FromMapping(newMap)
+	// since this is all vetted data, an error is impossible
+	newStore, _ := FromMapping(newMap)
+	return newStore
 }
 
-// ParseKey returns a namespace array from a namespace string
-func (s *Store) ParseNamespaceString(key string) []any {
+func (s *Store) DeepCopy() *Store {
+	newMap := deepCopyMap(s.data)
+	// since this is all vetted data, an error is impossible
+	newStore, _ := FromMapping(newMap)
+	return newStore
+}
+
+// ParseNamespaceString returns a namespace array from a namespace string
+func ParseNamespaceString(key string) []any {
 	var keys []any
-	keyParts := strings.Split(key, ".")
-	for _, kp := range keyParts {
-		key, index, ok := parseArrayKey(kp)
-		if !ok {
-			keys = append(keys, kp)
-		} else {
-			keys = append(keys, key)
-			keys = append(keys, index)
+	inIndex := -1
+	inKey := -1
+	for i := range key {
+		char := string(key[i])
+		if inIndex != -1 {
+			if char != "]" {
+				continue
+			}
+
+			intStr := key[inIndex+1 : i]
+			v, err := strconv.ParseInt(intStr, 10, 64)
+			if err != nil {
+				// treat it as a string
+				keys = append(keys, key[inIndex:i+1])
+			} else {
+				// treat it as an integer
+				keys = append(keys, int(v))
+			}
+			inIndex = -1
+			continue
 		}
+
+		if inKey != -1 && (char == "[" || char == ".") {
+			// deal with the key
+			keys = append(keys, key[inKey:i])
+			inKey = -1
+		}
+
+		if char == "[" {
+			inIndex = i
+			continue
+		}
+
+		if char == "." {
+			inKey = i + 1
+			continue
+		}
+
+		if inKey == -1 {
+			inKey = 0
+		}
+	}
+
+	if inKey != -1 {
+		keys = append(keys, key[inKey:])
 	}
 
 	return keys
