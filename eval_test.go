@@ -302,7 +302,8 @@ func TestBooleanOrderOfOpsTwo(t *testing.T) {
 
 func TestBooleanOrderOfOpsThree(t *testing.T) {
 	kvs := kvstore.NewStore()
-	kvs.Set("this is a text bundle\nand why not", "stdout")
+	err := kvs.Set("this is a text bundle\nand why not", "stdout")
+	assert.NoError(t, err)
 
 	vLookup := func(key string) (any, error) {
 		key = strings.TrimPrefix(key, ".")
@@ -310,7 +311,7 @@ func TestBooleanOrderOfOpsThree(t *testing.T) {
 		return v, nil
 	}
 
-	_, err := Evaluate(`len(lines(.stdout)) != 2 || lines(.stdout)[0] != "this is a text bundle"`, vLookup, fLookup)
+	_, err = Evaluate(`len(lines(.stdout)) != 2 || lines(.stdout)[0] != "this is a text bundle"`, vLookup, fLookup)
 	assert.NoError(t, err)
 }
 

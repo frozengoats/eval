@@ -13,7 +13,6 @@ type VariableLookup func(key string) (any, error)
 type FunctionCall func(name string, args ...any) (any, error)
 
 var subscriptParser = regexp.MustCompile(`^((\[\d+\])|(\.[a-zA-Z_][a-zA-Z_0-9]+))+$`)
-var keyStringSplitter = regexp.MustCompile(`[\.\[\]]`)
 var variableFinder = regexp.MustCompile(`^\.[a-zA-Z_]`)
 var templateFinder = regexp.MustCompile(`{{\s*.*?\s*}}`)
 
@@ -280,8 +279,9 @@ func (t *Token) evaluate(varLookup VariableLookup, funcCall FunctionCall) (any, 
 	case TokenTypeBoolean:
 		if t.Text == "true" {
 			curVal = true
+		} else {
+			curVal = false
 		}
-		curVal = false
 	case TokenTypeString:
 		curVal = t.Text
 	case TokenTypeNumber:
@@ -589,7 +589,7 @@ func trueIndex(length int, index int) (int, error) {
 func subscriptImmediate(value any, subscript string) (any, error) {
 	nsArray := kvstore.ParseNamespaceString(subscript)
 
-	var root any = value
+	var root = value
 	for _, ns := range nsArray {
 		switch t := root.(type) {
 		case map[string]any:
