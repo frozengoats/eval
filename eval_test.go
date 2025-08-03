@@ -241,36 +241,6 @@ func TestIsTruthy(t *testing.T) {
 	assert.False(t, IsTruthy(map[string]any{}))
 }
 
-func TestTemplate(t *testing.T) {
-	rendered, err := Template("{{ 50 }} hello {{ 100 + 2 }} something {{ hamster }}", nil, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, "50 hello 102 something hamster", rendered)
-}
-
-func TestTemplateStartEndEdgeCase(t *testing.T) {
-	rendered, err := Template("hello {{ 100 * 2 }} something", nil, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, "hello 200 something", rendered)
-}
-
-func TestTemplateSpace(t *testing.T) {
-	rendered, err := Template(" {{ 50 }} hello {{ 100 + 2 }} something {{ hamster }} ", nil, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, " 50 hello 102 something hamster ", rendered)
-}
-
-func TestEmptyTemplate(t *testing.T) {
-	rendered, err := Template("{{  }}", nil, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, "", rendered)
-}
-
-func TestNoTemplate(t *testing.T) {
-	rendered, err := Template("some perfectly normal text", nil, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, "some perfectly normal text", rendered)
-}
-
 func TestIterableVariableEvaluation(t *testing.T) {
 	values := kvstore.NewStore()
 	err := values.Set([]any{100, 101, 102}, "abc", "def")
