@@ -127,17 +127,6 @@ x := eval.Evaluate("myfunc('abc').def.ghi")
 x := eval.Evaluate("myfunc('abc').def[0].ghi[3]")
 ```
 
-## template support
-`eval` support basic template rendering, using `<! <expression> !>` as the marker for a templated portion of a string.  whitespace within the template markers is ignored unless explicitly included in a quoted string.  whitespace between `<!!>` is not required.
-```
-the thing is <!     .variable[0] + 2     !> meters long
-```
-that would render to the following (assuming that `.variable[0]` contained the number `5`):
-```
-the thing is 7 meters long
-```
-templates which evaluate to `nil` will be rendered as zero length strings
-
 ## helpers
 `eval` comes with a few utility functions to aid in processing of evaluated results
 | function   | description |
