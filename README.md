@@ -128,9 +128,9 @@ x := eval.Evaluate("myfunc('abc').def[0].ghi[3]")
 ```
 
 ## template support
-`eval` support basic template rendering, using `{{ <expression> }}` as the marker for a templated portion of a string.  whitespace within the template markers is ignored unless explicitly included in a quoted string.  whitespace between `{{}}` is not required.
+`eval` support basic template rendering, using `<! <expression> !>` as the marker for a templated portion of a string.  whitespace within the template markers is ignored unless explicitly included in a quoted string.  whitespace between `<!!>` is not required.
 ```
-the thing is {{     .variable[0] + 2     }} meters long
+the thing is <!     .variable[0] + 2     !> meters long
 ```
 that would render to the following (assuming that `.variable[0]` contained the number `5`):
 ```

@@ -242,27 +242,33 @@ func TestIsTruthy(t *testing.T) {
 }
 
 func TestTemplate(t *testing.T) {
-	rendered, err := Template("{{ 50 }} hello {{ 100 + 2 }} something {{ hamster }}", nil, nil)
+	rendered, err := Template("<! 50 !> hello <! 100 + 2 !> something <! hamster !>", nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "50 hello 102 something hamster", rendered)
 }
 
 func TestTemplateStartEndEdgeCase(t *testing.T) {
-	rendered, err := Template("hello {{ 100 * 2 }} something", nil, nil)
+	rendered, err := Template("hello <! 100 * 2 !> something", nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "hello 200 something", rendered)
 }
 
 func TestTemplateSpace(t *testing.T) {
-	rendered, err := Template(" {{ 50 }} hello {{ 100 + 2 }} something {{ hamster }} ", nil, nil)
+	rendered, err := Template(" <! 50 !> hello <! 100 + 2 !> something <! hamster !> ", nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, " 50 hello 102 something hamster ", rendered)
 }
 
 func TestEmptyTemplate(t *testing.T) {
-	rendered, err := Template("{{  }}", nil, nil)
+	rendered, err := Template("<!  !>", nil, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, "", rendered)
+	assert.Nil(t, rendered)
+}
+
+func TestIntegerTemplate(t *testing.T) {
+	rendered, err := Template("<! 1+1 !>", nil, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, 2., rendered)
 }
 
 func TestNoTemplate(t *testing.T) {

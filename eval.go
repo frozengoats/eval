@@ -14,7 +14,7 @@ type FunctionCall func(name string, args ...any) (any, error)
 
 var subscriptParser = regexp.MustCompile(`^((\[\d+\])|(\.[a-zA-Z_][a-zA-Z_0-9]+))+$`)
 var variableFinder = regexp.MustCompile(`^\.[a-zA-Z_]`)
-var templateFinder = regexp.MustCompile(`{{\s*.*?\s*}}`)
+var templateFinder = regexp.MustCompile(`<!\s*.*?\s*!>`)
 
 const (
 	OperatorEquals        string = "=="
@@ -756,8 +756,23 @@ func AsMapping(value any) map[string]any {
 	}
 }
 
-func Template(template string, varLookup VariableLookup, funcCall FunctionCall) (string, error) {
+func Template(template string, varLookup VariableLookup, funcCall FunctionCall) (any, error) {
+	isEncompassed := strings.HasPrefix(template, "<!") && strings.HasSuffix(template, "!>")
 	matches := templateFinder.FindAllStringSubmatchIndex(template, -1)
+
+	if len(matches) == 1 && isEncompassed {
+		// this is a single template and should not undergo any string concatenation,
+		// only the raw value is used
+		match := matches[0]
+		start := match[0]
+		end := match[1]
+		result, err := Evaluate(template[start+2:end-2], varLookup, funcCall)
+		if err != nil {
+			return "", err
+		}
+		return result, nil
+	}
+
 	var newParts []string
 	lastEnd := 0
 	for _, match := range matches {
